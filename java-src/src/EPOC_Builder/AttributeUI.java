@@ -1,0 +1,320 @@
+/*******************************************************************************
+ * AttributeUI.java
+ * =============================================================================
+ * Copyright (c) 2009-2010 Australian Antarctic Division. All rights reserved.
+ * Author can be contacted at troy.robertson@aad.gov.au.
+ *
+ * Every effort has been taken in making sure that the source code is
+ * technically accurate, but I disclaim any and all responsibility for any loss,
+ * damage or destruction of data or any other property which may arise from
+ * relying on it. I will in no case be liable for any monetary damages arising
+ * from such loss, damage or destruction.
+ *
+ * As with any code, ensure this code is tested in a development environment
+ * before attempting to run it in production.
+ * =============================================================================
+ */
+package au.gov.aad.erm.EPOC_Builder;
+
+import static au.gov.aad.erm.EPOC_Builder.Constants.*;
+import au.gov.aad.erm.RJEditor.*;
+
+import javax.swing.*;
+import java.awt.Font;
+
+/*******************************************************************************
+ * GUI for Attribute object.
+ * Allows display and data entry for Attribute objects.
+ *
+ * @author Troy Robertson
+ * @company Australian Antarctic Division
+ * @created 10/09/2009
+ * @version 0.4.0, 01-09-2010
+ *******************************************************************************/
+public class AttributeUI extends OpposingPanelUI {
+
+    private static Element element;
+    private Attribute attribute;
+    EmbeddedRJEditor rje = null;
+
+    /** Creates new form AttributeUI_OLD */
+    public AttributeUI(Attribute att, Element ele) {
+        element = ele;
+        attribute = att;
+
+        initComponents();
+        rje = new EmbeddedRJEditor(true);
+        jPanelEditor.add(rje);
+        editable(true);
+
+        loadForm();
+        requestFocus();
+        jTextShortName.requestFocus();
+    }
+    
+    /*
+     * Set editability of form
+     */
+    @Override
+    public void editable(boolean editable) {
+        super.editable(editable);
+        jTextShortName.setEditable(editable);
+        jTextAreaDesc.setEditable(editable);
+        rje.editable(editable);
+        jButtonParse.setEnabled(editable && rex.hasEngine());
+    }
+    
+    private void loadForm() {
+        jTextShortName.setText(attribute.getShortName());
+        // bold templates
+        if (attribute.isTemplate()) {
+            jTextShortName.setFont(jTextShortName.getFont().deriveFont(Font.BOLD));
+        } else {
+            jTextShortName.setFont(jTextShortName.getFont().deriveFont(Font.PLAIN));
+        }
+        jTextVersion.setText(attribute.getRevision());
+        jTextModified.setText(attribute.getFormattedModified());
+        jTextAreaDesc.setText(attribute.getDescription());
+        rje.setText(attribute.getValue());
+    }
+    
+    public int saveIfModified() {
+        // Check if form data has been modified, if so update object
+        if (isModified()) {
+            setWasModified(true);
+
+            // Check if required fields are filled adequately
+            if (!EPOCObject.testName(jTextShortName.getText())) {
+                JOptionPane.showMessageDialog(this, "Please provide a shortname for attribute first!\n\n" +
+                         "Attribute must be named and may only contain\n" +
+                         "alphanumerics, '.' or '_'\n" +
+                         "It may only start with an alphabetic character\n" +
+                         "and may not end in '.' or '_'");
+                return EPOC_FAIL;
+            }
+
+            if (jTextAreaDesc.getText().length() > 512) {
+                JOptionPane.showMessageDialog(this, "The description field is limited to only 512 characters!");
+                return EPOC_FAIL;
+            }
+
+            attribute.setShortName(jTextShortName.getText());
+            attribute.setModifiedNow();
+            attribute.setDescription(jTextAreaDesc.getText());
+            attribute.setValue(rje.getText());
+
+            setModified(false);
+            return EPOC_SUCC;
+        }
+
+        setWasModified(false);
+        return EPOC_NONE;
+    }
+
+    /**
+     * Have form values been modified when compared to stored object data
+     * @return boolean
+     */
+    public boolean isModified() {
+        if (super.isModified()) return true;    // This will be set by timestep edits
+        if (!attribute.getShortName().equals(jTextShortName.getText())) return true;
+        if (!attribute.getDescription().equals(jTextAreaDesc.getText())) return true;
+        if (!attribute.getValue().equals(rje.getText())) return true;
+
+        return false;
+    }
+
+    public EPOCObject getObject() {
+        return attribute;
+    }
+
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextAreaDesc = new javax.swing.JTextArea();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jTextVersion = new javax.swing.JTextField();
+        jButtonParse = new javax.swing.JButton();
+        jPanelEditor = new javax.swing.JPanel();
+        jLabel35 = new javax.swing.JLabel();
+        jTextModified = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jTextShortName = new javax.swing.JTextField();
+
+        setPreferredSize(new java.awt.Dimension(600, 450));
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jPanel1.setPreferredSize(new java.awt.Dimension(580, 420));
+
+        jLabel2.setText("Value:");
+
+        jTextAreaDesc.setFont(new java.awt.Font("Tahoma", 0, 11));
+        jTextAreaDesc.setMaximumSize(new java.awt.Dimension(2147483647, 58));
+        jScrollPane1.setViewportView(jTextAreaDesc);
+
+        jLabel3.setText("Description:");
+
+        jLabel4.setText("Revision:");
+
+        jTextVersion.setEditable(false);
+        jTextVersion.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jTextVersion.setPreferredSize(new java.awt.Dimension(200, 18));
+
+        jButtonParse.setForeground(new java.awt.Color(0, 0, 255));
+        jButtonParse.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/run.png"))); // NOI18N
+        jButtonParse.setText("Parse");
+        jButtonParse.setToolTipText("Test R code syntax");
+        jButtonParse.setAlignmentX(0.5F);
+        jButtonParse.setMargin(new java.awt.Insets(2, 0, 2, 0));
+        jButtonParse.setMaximumSize(new java.awt.Dimension(55, 20));
+        jButtonParse.setMinimumSize(new java.awt.Dimension(55, 20));
+        jButtonParse.setPreferredSize(new java.awt.Dimension(55, 20));
+        jButtonParse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonParseActionPerformed(evt);
+            }
+        });
+
+        jPanelEditor.setBackground(new java.awt.Color(255, 255, 255));
+        jPanelEditor.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jPanelEditor.setLayout(new javax.swing.BoxLayout(jPanelEditor, javax.swing.BoxLayout.Y_AXIS));
+
+        jLabel35.setText("Modified:");
+
+        jTextModified.setBackground(new java.awt.Color(212, 208, 200));
+        jTextModified.setEditable(false);
+        jTextModified.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jTextModified.setPreferredSize(new java.awt.Dimension(200, 18));
+        jTextModified.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextModifiedActionPerformed(evt);
+            }
+        });
+
+        org.jdesktop.layout.GroupLayout jPanel1Layout = new org.jdesktop.layout.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jLabel4)
+                    .add(jLabel3)
+                    .add(jLabel2)
+                    .add(jButtonParse, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 60, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(11, 11, 11)
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 485, Short.MAX_VALUE)
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanelEditor, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 485, Short.MAX_VALUE)
+                    .add(jPanel1Layout.createSequentialGroup()
+                        .add(jTextVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 150, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 137, Short.MAX_VALUE)
+                        .add(jLabel35)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jTextModified, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 150, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabel4)
+                    .add(jTextVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jTextModified, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel35))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jLabel3)
+                    .add(jScrollPane1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 58, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jPanel1Layout.createSequentialGroup()
+                        .add(jLabel2)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                        .add(jButtonParse, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(jPanelEditor, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11));
+        jLabel1.setText("Attribute:");
+
+        jTextShortName.setColumns(20);
+        jTextShortName.setHorizontalAlignment(javax.swing.JTextField.LEFT);
+        jTextShortName.setToolTipText("Short Name");
+
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                    .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .add(jPanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
+                        .add(19, 19, 19)
+                        .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 55, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(19, 19, 19)
+                        .add(jTextShortName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 150, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jTextShortName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel1))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void jButtonParseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParseActionPerformed
+        if (!rje.getText().equals("")) {
+            if (rex.hasEngine()) {
+                if (!rex.parse(rje.getText())) {
+                    JOptionPane.showMessageDialog(this, Messages.getUnreadErrMsgs(), "Failed", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Passed syntax check.", "Passed", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No JRI Engine found!\nUnable to parse R code!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+}//GEN-LAST:event_jButtonParseActionPerformed
+
+    private void jTextModifiedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextModifiedActionPerformed
+        // TODO add your handling code here:
+}//GEN-LAST:event_jTextModifiedActionPerformed
+    
+    
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonParse;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel35;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanelEditor;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextAreaDesc;
+    private javax.swing.JTextField jTextModified;
+    private javax.swing.JTextField jTextShortName;
+    private javax.swing.JTextField jTextVersion;
+    // End of variables declaration//GEN-END:variables
+    
+}
